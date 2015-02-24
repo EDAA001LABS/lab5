@@ -1,0 +1,194 @@
+package map;
+
+//import SimpleHashMap.Entry;
+import map.Map;
+
+@SuppressWarnings("unchecked")
+public class SimpleHashMap<K, V> implements Map<K, V> {
+	private Entry<K, V>[] entries;
+	private double loadfactor;
+	private int size;
+
+	public SimpleHashMap() {
+		size = 0;
+		entries = (Entry<K, V>[]) new Entry[16];
+		loadfactor = 0.75;
+	}
+
+	public SimpleHashMap(int capacity) {
+		entries = (Entry<K, V>[]) new Entry[capacity];
+		loadfactor = 0.75;
+	}
+
+	public String show() {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < entries.length; i++) {
+			if (entries[i] != null) {
+				sb.append(i + " !! ");
+				Entry<K, V> current = entries[i];
+				sb.append(entries[i].toString());
+				while (current.next != null) {
+					sb.append(current.toString());
+				}
+				sb.append("\n");
+			}
+		}
+		return new String(sb.toString());
+	}
+
+	// public V get(Object obj) {
+	// for (int i = 0; i < entries.length; i++) {
+	// if (entries[i] != null) {
+	// if (entries[i].getKey().equals((K) obj)) {
+	// return entries[i].getValue();
+	// } else {
+	// Entry<K, V> current = entries[i];
+	// while (current.getNext() != null) {
+	// if (current.getKey().equals((K) obj)) {
+	// return entries[i].getValue();
+	// }
+	// current = current.next;
+	// }
+	// }
+	// }
+	// }
+	// return null;
+	// }
+
+	public V get(Object obj) {
+		if (index((K) obj) != -1) {
+			if (find((K) obj, index((K) obj)) != null) {
+				return find((K) obj, index((K) obj)).getValue();
+			}
+		}
+		return null;
+	}
+
+	public boolean isEmpty() {
+		return size == 0;
+	}
+
+	public V remove(Object key) {
+		if (entries.length == 0) {
+			return null;
+		}
+		for (int i = 0; i < entries.length; i++) {
+			if (entries[i] != null) {
+				Entry<K, V> current = entries[i];
+				if (current.getKey().equals(key)) {
+					entries[i] = current.next;
+					size --;
+					return current.getValue();
+				}
+				while (current.next != null) {
+					if (current.next.getKey().equals(key)) {
+						current.next = current.next.next;
+						size --;
+						return current.getValue();
+					}
+					current = current.next;
+				}
+			}
+		}
+		return null;
+	}
+
+	public int size() {
+		return size;
+	}
+
+	private int index(K key) {
+		for (int i = 0; i < entries.length; i++) {
+			if (entries[i] != null) {
+				if (entries[i].getKey().equals(key)) {
+					return i;
+				} else {
+					Entry<K, V> current = entries[i];
+					while (current.getNext() != null) {
+						if (current.getKey().equals(key)) {
+							return i;
+						}
+						current = current.next;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	private Entry<K, V> find(K key, int index) {
+		if (entries.length == 0) {
+			return null;
+		}
+		if (index >= 0) {
+			if (entries[index].getKey().equals(key)) {
+				return entries[index];
+			} else {
+				Entry<K, V> current = entries[index];
+				while (current.getNext() != null) {
+					if (current.getKey().equals(key)) {
+						return entries[index];
+					}
+					current = current.next;
+				}
+			}
+		}
+		return null;
+	}
+
+	public V put(K key, V value) {
+		if (find(key, index(key)) == null) {
+			if (size / entries.length >= loadfactor) {
+				rehash();
+			}
+			entries[size % entries.length] = new Entry<K, V>(key, value);
+			size++;
+			return null;
+
+		} else {
+			V oldvalue = find(key, index(key)).getValue();
+			find(key, index(key)).setValue(value);
+			return oldvalue;
+		}
+	}
+
+	private void rehash() {
+		Entry<K, V>[] newentries = new Entry[(int) (size * 1.5)];
+		for (int i = 0; i < size; i++) {
+			newentries[i] = entries[i];
+		}
+		entries = newentries;
+	}
+
+	private static class Entry<K, V> implements Map.Entry<K, V> {
+		private K key;
+		private V value;
+		private Entry<K, V> next;
+
+		private Entry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		public Entry<K, V> getNext() {
+			return next;
+		}
+
+		public K getKey() {
+			return key;
+		}
+
+		public V getValue() {
+			return value;
+		}
+
+		public V setValue(V value) {
+			this.value = value;
+			return value;
+		}
+
+		public String toString() {
+			return new String(key + " = " + value);
+		}
+	}
+}
