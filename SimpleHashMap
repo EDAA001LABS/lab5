@@ -26,10 +26,12 @@ public class SimpleHashMap<K, V> implements Map<K, V> {
 			if (entries[i] != null) {
 				sb.append(i + " !! ");
 				Entry<K, V> current = entries[i];
-				sb.append(entries[i].toString());
+				sb.append(entries[i].toString()+ " ");
 				while (current.next != null) {
-					sb.append(current.toString());
+					current = current.next;
+					sb.append(current.toString() + " ");
 				}
+				
 				sb.append("\n");
 			}
 		}
@@ -72,79 +74,87 @@ public class SimpleHashMap<K, V> implements Map<K, V> {
 		if (entries.length == 0) {
 			return null;
 		}
-		for (int i = 0; i < entries.length; i++) {
-			if (entries[i] != null) {
-				Entry<K, V> current = entries[i];
-				if (current.getKey().equals(key)) {
-					entries[i] = current.next;
+		Entry<K, V> current = entries[index((K) key)];
+		if (current != null) {
+			if (current.getKey().equals(key)) {
+				size --;
+				V value = entries[index((K) key)].getValue();
+				entries[index((K) key)] = current.next;
+				return value;
+			}
+			while (current.next != null) {
+				if (current.next.getKey().equals(key)) {
 					size --;
-					return current.getValue();
+					V value = current.next.getValue();
+					current.next = current.next.next;
+					return value;
 				}
-				while (current.next != null) {
-					if (current.next.getKey().equals(key)) {
-						current.next = current.next.next;
-						size --;
-						return current.getValue();
-					}
-					current = current.next;
-				}
+				current = current.next;
 			}
 		}
 		return null;
 	}
+
+	// public V remove(Object key) {
+	// if (entries.length == 0) {
+	// return null;
+	// }
+	// for (int i = 0; i < entries.length; i++) {
+	// if (entries[i] != null) {
+	// Entry<K, V> current = entries[i];
+	// if (current.getKey().equals(key)) {
+	// entries[i] = current.next;
+	// size--;
+	// return current.getValue();
+	// }
+	// while (current.next != null) {
+	// if (current.next.getKey().equals(key)) {
+	// current.next = current.next.next;
+	// size--;
+	// return current.getValue();
+	// }
+	// current = current.next;
+	// }
+	// }
+	// }
+	// return null;
+	// }
 
 	public int size() {
 		return size;
 	}
 
 	private int index(K key) {
-		for (int i = 0; i < entries.length; i++) {
-			if (entries[i] != null) {
-				if (entries[i].getKey().equals(key)) {
-					return i;
-				} else {
-					Entry<K, V> current = entries[i];
-					while (current.getNext() != null) {
-						if (current.getKey().equals(key)) {
-							return i;
-						}
-						current = current.next;
-					}
-				}
-			}
-		}
-		return -1;
+		return Math.abs(key.hashCode() % entries.length);
 	}
 
 	private Entry<K, V> find(K key, int index) {
-		if (entries.length == 0) {
-			return null;
+
+		Entry<K, V> current = entries[index];
+		while (current != null && !current.getKey().equals(key)) {
+			current = current.next;
 		}
-		if (index >= 0) {
-			if (entries[index].getKey().equals(key)) {
-				return entries[index];
-			} else {
-				Entry<K, V> current = entries[index];
-				while (current.getNext() != null) {
-					if (current.getKey().equals(key)) {
-						return entries[index];
-					}
-					current = current.next;
-				}
-			}
-		}
-		return null;
+		return current;
 	}
 
 	public V put(K key, V value) {
-		if (find(key, index(key)) == null) {
+		Entry<K, V> check = find(key, index(key));
+		if (check == null) {
 			if (size / entries.length >= loadfactor) {
 				rehash();
 			}
-			entries[size % entries.length] = new Entry<K, V>(key, value);
+			int hash = Math.abs(key.hashCode() % entries.length);
+			Entry<K, V> current = entries[hash];
+			if (entries[hash] != null) {
+				while (current.next != null) {
+					current = current.next;
+				}
+				current.next = new Entry<K, V>(key, value);
+			} else {
+				entries[hash] = new Entry<K, V>(key, value);
+			}
 			size++;
 			return null;
-
 		} else {
 			V oldvalue = find(key, index(key)).getValue();
 			find(key, index(key)).setValue(value);
@@ -154,10 +164,20 @@ public class SimpleHashMap<K, V> implements Map<K, V> {
 
 	private void rehash() {
 		Entry<K, V>[] newentries = new Entry[(int) (size * 1.5)];
-		for (int i = 0; i < size; i++) {
-			newentries[i] = entries[i];
-		}
+		Entry<K, V>[] oldentries = entries;
 		entries = newentries;
+		int oldsize = size;
+		size = 0;
+		for (int i = 0; i < oldsize; i++) {
+			if (oldentries[i] != null) {
+				put(oldentries[i].getKey(), oldentries[i].getValue());
+				Entry<K, V> current = oldentries[i];
+				while (current != null) {
+					put(current.getKey(), current.getValue());
+					current = current.next;
+				}
+			}
+		}
 	}
 
 	private static class Entry<K, V> implements Map.Entry<K, V> {
