@@ -4,12 +4,14 @@ import java.util.Random;
 
 public class SimpleHashMain {
 	public static void main(String[] args) {
-		SimpleHashMap<Integer, Integer> hashmapints = new SimpleHashMap<Integer, Integer>();
+		SimpleHashMap<Integer, Integer> hm = new SimpleHashMap<Integer, Integer>();
 		Random rand = new Random();
+		hm.put(1,1);
+		hm.put(17,17);
 		for (int i = 0; i < 10; i++) {
 			int a = rand.nextInt();
-			hashmapints.put(a, a);
+			hm.put(a, a);
 		}
-		System.out.println(hashmapints.show());
+		System.out.println(hm.show());
 	}
 }
