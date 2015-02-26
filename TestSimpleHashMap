@@ -106,14 +106,15 @@ public class TestSimpleHashMap {
 	}
 	
 	@Test
-//	public final void testRemoveOneElement() {
-//		m.put(1, 1);
-//		assertNull("wrong remove():", m.remove(2));
-//		assertEquals("wrong result from remove: 1", new Integer(1), m.remove(1));
-//		assertNull("wrong get():", m.get(1));
-//		assertNull("wrong put():", m.put(1, 1));
-//	}
+	public final void testRemoveOneElement() {
+		m.put(1, 1);
+		assertNull("wrong remove():", m.remove(2));
+		assertEquals("wrong result from remove: 1", new Integer(1), m.remove(1));
+		assertNull("wrong get():", m.get(1));
+		assertNull("wrong put():", m.put(1, 1));
+	}
 	
+	@Test
 	public final void testRemove() {
 		m16.put(1, 1);
 		m16.put(17, 17);
@@ -193,3 +194,4 @@ public class TestSimpleHashMap {
 		assertEquals("key not found in map: 49", new Integer(3), s.get(new String("jkl")));
 	}
 }
+
